@@ -1,0 +1,24 @@
+---
+title: "Giant Pacific Salamander"
+author: "Shelby Walsh"
+date: "11/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, message = FALSE, warning = FALSE, echo = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(ggbeeswarm)
+library(kableExtra)
+library(car)
+```
+
+```{r}
+mack_creek_vertebrates <- read_csv("mack_creek_vertebrates.csv") %>% 
+  janitor::clean_names()
+```
+
