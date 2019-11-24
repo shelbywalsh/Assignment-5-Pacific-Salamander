@@ -11,6 +11,9 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 
 ```{r}
 library(tidyverse)
+library(tidyr)
+library(effsize)
+library(RColorBrewer)
 library(janitor)
 library(ggbeeswarm)
 library(kableExtra)
@@ -18,7 +21,35 @@ library(car)
 ```
 
 ```{r}
+#read in data
 mack_creek_vertebrates <- read_csv("mack_creek_vertebrates.csv") %>% 
   janitor::clean_names()
+```
+
+```{r}
+OG_CC_counts <- mack_creek_vertebrates %>% 
+  count(year, section)
+OG_CC_counts
+```
+
+```{r}
+OG_vs_CC <- mack_creek_vertebrates %>% 
+  select(year, section, entity) %>% 
+  group_by(year, section) %>% 
+  summarise(annual_count = sum(entity, na.rm = TRUE))
+```
+
+```{r}
+ggplot(data = OG_vs_CC, aes(x = year, y = annual_count)) +
+  geom_point(aes(color = section)) +
+  theme_minimal() +
+  #scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(limits = c(0, 800),
+                     expand = c(0,0)) +
+  scale_colour_manual(values = c("salmon2", "palegreen4"))+
+  #scale_x_continuous() +
+  labs(x = NULL,
+       y = "Annual Salamander Counts",
+       title = "Annual Salamander Counts of Old Growth Forest vs Clear Cut Forest (1987-2017)")
 ```
 
