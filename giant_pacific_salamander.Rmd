@@ -1,6 +1,6 @@
 ---
 title: "Giant Pacific Salamander"
-author: "Shelby Walsh"
+author: "Shelby Walsh and AJ Zekanoski"
 date: "11/23/2019"
 output: html_document
 ---
@@ -23,16 +23,15 @@ library(car)
 ```{r}
 #read in data
 mack_creek_vertebrates <- read_csv("mack_creek_vertebrates.csv") %>% 
-  janitor::clean_names()
+  janitor::clean_names() %>% 
+    mutate(unittype = case_when(
+      unittype == 'P' ~ 'Pool',
+      unittype == 'SC' ~ 'Side-Channel',
+      unittype == 'C' ~ 'Cascade'))
 ```
 
 ```{r}
-OG_CC_counts <- mack_creek_vertebrates %>% 
-  count(year, section)
-OG_CC_counts
-```
-
-```{r}
+#make a table for just year, section of forest and the total counts of salamanders in each section per year
 OG_vs_CC <- mack_creek_vertebrates %>% 
   select(year, section, entity) %>% 
   group_by(year, section) %>% 
@@ -40,16 +39,133 @@ OG_vs_CC <- mack_creek_vertebrates %>%
 ```
 
 ```{r}
+#plot old growth forests and clear cut forests from 1987 to 2017
 ggplot(data = OG_vs_CC, aes(x = year, y = annual_count)) +
+  #plot(OG_vs_CC,xaxt = 'n')+
+  #axis(1, seq(1987, 2017, 5)) +
   geom_point(aes(color = section)) +
   theme_minimal() +
   #scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(limits = c(0, 800),
                      expand = c(0,0)) +
   scale_colour_manual(values = c("salmon2", "palegreen4"))+
-  #scale_x_continuous() +
+  scale_x_continuous(limits = c(1987, 2017)) +
   labs(x = NULL,
        y = "Annual Salamander Counts",
-       title = "Annual Salamander Counts of Old Growth Forest vs Clear Cut Forest (1987-2017)")
+       title = "Annual Salamander Counts of Old Growth Forest vs Clear Cut Forest (1987-2017)",
+       caption = ""
+       )
 ```
 
+
+```{r, include=FALSE}
+#make a counts table for 2017 for OG and CC locations 
+OG_CC_counts <- mack_creek_vertebrates %>% 
+  filter(year == 2017) %>% 
+  filter(unittype %in% c("Pool","Cascade","Side-Channel")) %>% 
+  count(section, unittype)
+OG_CC_counts
+
+OG_CC_location <- OG_CC_counts %>% 
+  pivot_wider(names_from = section, values_from = n)
+OG_CC_location
+```
+
+```{r}
+#pretty count table with preportions
+OG_CC_table <- OG_CC_location %>% 
+  janitor::adorn_percentages(denominator = "row") %>% 
+  adorn_pct_formatting(digits = 1) %>% 
+  adorn_ns(position = "front")
+
+knitr::kable(OG_CC_table,
+      col.names = c("",
+                    "Clear Cut",
+                    "Old Growth"),
+      caption = "Table 1. Pacific giant salamander observation locations from 2017.") %>% 
+  kable_styling(bootstrap_options = "striped", 
+                full_width = F, 
+                position = "center") %>% 
+  add_header_above(c("Pacific Giant Salamander Observasions (2017)" =3))
+```
+
+```{r, include=FALSE}
+#chi square test to compare if there is a significant difference in where salamanders are located between clear cut and old growth forests.
+OG_CC_ct <- OG_CC_location %>% 
+  column_to_rownames('unittype')
+
+#there is a significant difference in where salamanders are located based on if they are in a clear cut or old growth forest.
+OG_CC_chi <- chisq.test(OG_CC_ct)
+OG_CC_chi
+```
+
+```{r, include=FALSE}
+#compare weights of salamanders between old growth and clear cut forests
+#Filter to just contain 2017 observations, weights and locations
+OG_CC_weights <- mack_creek_vertebrates %>% 
+  select(year, section, weight) %>% 
+  filter(year == 2017) 
+
+#mean table
+OG_CC_mean_weights <- OG_CC_weights %>% 
+  group_by(year, section) %>% 
+  summarise(mean = mean(weight, na.rm=TRUE))
+
+#Clear Cut mean vector for ttest
+CC_mean_weights <- OG_CC_weights %>% 
+  filter(section == "CC") %>% 
+  pull(weight)
+
+#Old growth mean vector for ttest
+OG_mean_weights <- OG_CC_weights %>% 
+  filter(section == "OG") %>% 
+  pull(weight)
+
+#TTest used to find if there is a significant difference in weights of salamanders based on if they are located in a clear cut or old growth forest.
+OG_CC_ttest <- t.test(CC_mean_weights, OG_mean_weights) 
+OG_CC_ttest 
+#There is a significant difference in mean weights between salamanders that are located in clear cut forests and those in old growth forests, p-value< 0.05
+```
+
+```{r}
+#compare 2017 salamander weigths between channel locations
+
+channel_location_weights <- mack_creek_vertebrates %>% 
+  select(year, unittype, weight) %>% 
+  filter(year == 2017) %>% 
+  drop_na()
+
+#summary table of means, sd, se, vars, sample size
+channel_location_stats <- channel_location_weights %>% 
+  group_by(unittype) %>% 
+  summarise(mean_weight = mean(weight),
+            sd_weight = sd(weight),
+            sample_size = n(),
+            se_weight = sd(weight)/ sqrt(n()),
+            var_weight = var(weight))
+
+#visual comparision between cascade, pool and side-channel weights
+ggplot() +
+  geom_beeswarm(data = channel_location_weights, 
+                aes(x = unittype, y = weight),
+                size = 2,
+                alpha = 0.6,
+                pch = 16,
+                color = "gray70") +
+  scale_x_discrete(labels = c("Cascade", "Pool", "Side-Channel")) +
+   geom_point( data = channel_location_stats, 
+              aes(x = unittype, y = mean_weight)) +
+  geom_errorbar(data = channel_location_stats,
+                aes(x = unittype,
+                    ymin = mean_weight - sd_weight,
+                    ymax = mean_weight + sd_weight,
+                    width = 0.5))
+```
+
+```{r}
+ggplot(data = channel_location_weights, aes(x = weight)) +
+  geom_density() +
+  facet_wrap(~unittype, scales = "free") +
+  theme_minimal() 
+```
+push to github
