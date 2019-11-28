@@ -169,3 +169,4 @@ ggplot(data = channel_location_weights, aes(x = weight)) +
   theme_minimal() 
 ```
 push to github
+TRYGITAGAIN........
