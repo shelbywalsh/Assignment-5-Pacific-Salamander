@@ -43,7 +43,7 @@ OG_vs_CC <- mack_creek_vertebrates %>%
 ggplot(data = OG_vs_CC, aes(x = year, y = annual_count)) +
   #plot(OG_vs_CC,xaxt = 'n')+
   #axis(1, seq(1987, 2017, 5)) +
-  geom_point(aes(color = section)) +
+  geom_line(aes(color = section)) +
   theme_minimal() +
   #scale_x_continuous(expand = c(0,0)) +
   scale_y_continuous(limits = c(0, 800),
@@ -147,11 +147,12 @@ channel_location_stats <- channel_location_weights %>%
 #visual comparision between cascade, pool and side-channel weights
 ggplot() +
   geom_beeswarm(data = channel_location_weights, 
-                aes(x = unittype, y = weight),
-                size = 2,
+                aes(x = unittype, y = weight, color = unittype),
+                size = 0.7,
                 alpha = 0.6,
                 pch = 16,
-                color = "gray70") +
+                show.legend = FALSE) +
+  scale_color_brewer(palette = "Set2") +
   scale_x_discrete(labels = c("Cascade", "Pool", "Side-Channel")) +
    geom_point( data = channel_location_stats, 
               aes(x = unittype, y = mean_weight)) +
@@ -159,7 +160,11 @@ ggplot() +
                 aes(x = unittype,
                     ymin = mean_weight - sd_weight,
                     ymax = mean_weight + sd_weight,
-                    width = 0.5))
+                    width = 0.15)) +
+  theme_minimal()+
+  labs(x = "Channel Location",
+       y = "Salamander Weight (grams)",
+       title = "Pacific Giant Salamander Weight Comparison between Channel Location")
 ```
 
 ```{r}
