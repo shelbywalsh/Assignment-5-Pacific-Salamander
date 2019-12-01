@@ -74,7 +74,7 @@ OG_CC_location
 ```{r}
 #pretty count table with preportions
 OG_CC_table <- OG_CC_location %>% 
-  janitor::adorn_percentages(denominator = "row") %>% 
+  janitor::adorn_percentages(denominator = "col") %>% 
   adorn_pct_formatting(digits = 1) %>% 
   adorn_ns(position = "front")
 
@@ -125,6 +125,7 @@ OG_mean_weights <- OG_CC_weights %>%
 OG_CC_ttest <- t.test(CC_mean_weights, OG_mean_weights) 
 OG_CC_ttest 
 #There is a significant difference in mean weights between salamanders that are located in clear cut forests and those in old growth forests, p-value< 0.05
+
 ```
 
 ```{r}
@@ -143,6 +144,7 @@ channel_location_stats <- channel_location_weights %>%
             sample_size = n(),
             se_weight = sd(weight)/ sqrt(n()),
             var_weight = var(weight))
+
 
 #visual comparision between cascade, pool and side-channel weights
 ggplot() +
@@ -164,14 +166,33 @@ ggplot() +
   theme_minimal()+
   labs(x = "Channel Location",
        y = "Salamander Weight (grams)",
-       title = "Pacific Giant Salamander Weight Comparison between Channel Location")
+       title = "Pacific Giant Salamander Weight Comparison between Channel Location",
+       caption = "Figure 2. ")
 ```
 
-```{r}
+```{r, include = FALSE}
+
+#Leveene Test to compare 
+leveneTest(weight ~ unittype, data = channel_location_weights)
+
+#One-way Anova
+channel_aov <- aov(weight ~ unittype, data = channel_location_weights)
+summary(channel_aov)
+
+# Type III Anova
+channel_lm <- lm(weight ~ unittype, data = channel_location_weights)
+channel_aov_t3 <- Anova(channel_lm)
+channel_aov_t3
+
+#Tukeys Test
+TukeyHSD(channel_aov)
+
+```
+
+
+```{r, include=FALSE}
 ggplot(data = channel_location_weights, aes(x = weight)) +
   geom_density() +
   facet_wrap(~unittype, scales = "free") +
   theme_minimal() 
 ```
-push to github
-TRYGITAGAIN........
