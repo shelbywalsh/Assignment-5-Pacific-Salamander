@@ -220,10 +220,3 @@ TukeyHSD(channel_aov)
 #Pool is sig different from Cascade and side-channel with a adjusted p<0.05 but cascade and side-channel are not sig different from one another with p=0.16
 ```
 
-
-```{r, include=FALSE}
-ggplot(data = channel_location_weights, aes(x = weight)) +
-  geom_density() +
-  facet_wrap(~unittype, scales = "free") +
-  theme_minimal() 
-```
