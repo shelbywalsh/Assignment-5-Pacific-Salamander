@@ -56,7 +56,7 @@ ggplot(data = OG_vs_CC, aes(x = year, y = annual_count)) +
   scale_y_continuous(limits = c(0, 800),
                      expand = c(0,0)) +
   scale_colour_manual(values = c("salmon2", "palegreen4"))+
-  scale_x_continuous(limits = c(1987, 2017)) +
+  scale_x_discrete(limits = c(1987, 1992, 1997, 2002, 2007, 2012, 2017)) +
   labs(x = NULL,
        y = "Annual Salamander Counts",
        title = "Annual Salamander Counts of Old Growth vs Clear Cut Forest\n(1987-2017)",
