@@ -24,6 +24,7 @@ library(car)
 #read in data
 mack_creek_vertebrates <- read_csv("mack_creek_vertebrates.csv") %>% 
   janitor::clean_names() %>% 
+  filter(species == "DITE") %>% 
     mutate(unittype = case_when(
       unittype == 'P' ~ 'Pool',
       unittype == 'SC' ~ 'Side-Channel',
@@ -36,7 +37,8 @@ mack_creek_vertebrates <- read_csv("mack_creek_vertebrates.csv") %>%
 ```{r}
 #make a table for just year, section of forest and the total counts of salamanders in each section per year
 OG_vs_CC <- mack_creek_vertebrates %>% 
-  select(year, section, entity) %>% 
+  select(year, section, entity, species) %>% 
+  filter(species == "DITE") %>% 
   group_by(year, section) %>% 
   summarise(annual_count = sum(entity, na.rm = TRUE))
 ```
@@ -53,7 +55,7 @@ ggplot(data = OG_vs_CC, aes(x = year, y = annual_count)) +
   geom_line(aes(color = section)) +
   theme_minimal() +
   #scale_x_continuous(expand = c(0,0)) +
-  scale_y_continuous(limits = c(0, 800),
+  scale_y_continuous(limits = c(0, 400),
                      expand = c(0,0)) +
   scale_colour_manual(values = c("salmon2", "palegreen4"))+
   scale_x_discrete(limits = c(1987, 1992, 1997, 2002, 2007, 2012, 2017)) +
@@ -103,6 +105,7 @@ knitr::kable(OG_CC_table,
                 font_size = 20) %>% 
   add_header_above(c("Pacific Giant Salamander Observasions (2017)" =4))
 ```
+
 
 ```{r, include=FALSE}
 #chi square test to compare if there is a significant difference in where salamanders are located between clear cut and old growth forests.
@@ -170,7 +173,7 @@ channel_location_stats <- channel_location_weights %>%
 ggplot() +
   geom_beeswarm(data = channel_location_weights, 
                 aes(x = unittype, y = weight, color = unittype),
-                size = 0.7,
+                size = 1,
                 alpha = 0.6,
                 pch = 16,
                 show.legend = FALSE) +
